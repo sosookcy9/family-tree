@@ -121,19 +121,13 @@
       padding: 0 2px;
       border-radius: 2px;
       letter-spacing: 0.05em;
-      white-space: nowrap;   /* 名字＋badge 同行 */
+      white-space: nowrap;
       display: inline-flex;
       align-items: baseline;
       gap: 0;
     }
-    .name:hover {
-      color: var(--red);
-      background: #b8860b18;
-    }
-    .name.active {
-      color: var(--red);
-      border-bottom-style: solid;
-    }
+    .name:hover { color: var(--red); background: #b8860b18; }
+    .name.active { color: var(--red); border-bottom-style: solid; }
 
     /* ── Year badge ── */
     .year {
@@ -168,7 +162,7 @@
       border-left: 1.5px solid var(--line);
     }
 
-    /* ── Each child row connector ── */
+    /* ── Each child row connector (橫線) ── */
     .child-row {
       position: relative;
     }
@@ -176,17 +170,12 @@
       content: '';
       position: absolute;
       left: calc(-1 * (var(--indent) - var(--line-left)));
-      top: calc(0.9em + 5px); /* vertically centers on the text */
+      top: calc(0.9em + 5px);
       width: calc(var(--indent) - var(--line-left) - 4px);
       height: 1.5px;
       background: var(--line);
     }
-
-    /* Last child: clip the vertical line */
-    .child-row:last-child {
-      /* The border-left of .children continues through, we use a mask */
-    }
-    /* Override: end the vertical line at last child */
+    /* 最後子節點：用白色蓋掉多餘垂直線 */
     .children > .child-row:last-child::after {
       content: '';
       position: absolute;
@@ -203,9 +192,29 @@
       font-family: "Noto Sans TC", sans-serif;
       font-size: 0.75em;
       color: var(--ink-light);
-      letter-spacing: 0.04em;
-      padding: 0 0 4px 0;
-      opacity: 0.85;
+      letter-spacing: 0.06em;
+      padding: 0 6px 6px;
+      opacity: 0.8;
+      font-style: italic;
+    }
+
+    /* ── Scroll hint (手機) ── */
+    .scroll-hint {
+      display: none;
+      text-align: center;
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      margin-top: 12px;
+      opacity: 0;
+      animation: fadeHint 3s ease 0.8s forwards;
+    }
+    @keyframes fadeHint {
+      0%   { opacity: 0; }
+      20%  { opacity: 0.7; }
+      80%  { opacity: 0.7; }
+      100% { opacity: 0; }
     }
 
     /* ── Footer ── */
@@ -222,6 +231,7 @@
       .card { padding: 16px 14px; }
       .tree { font-size: 16px; }
       :root { --indent: 22px; --line-left: 11px; }
+      .scroll-hint { display: block; }
     }
   </style>
 </head>
@@ -283,7 +293,7 @@
               <span class="name" onclick="toggle(this)">郭林梅金<span class="year">昭和5年1月30日（1930）～民國114年11月18日（2025）</span></span>
             </div>
           </div>
-          <div class="note">（生父：郭江溪（次男）／生母：郭張旦）</div>
+          <div class="note">（生父生母：郭江溪　郭張旦）</div>
 
           <div class="children">
 
@@ -519,6 +529,7 @@
   </div><!-- /新祿 children -->
 </div><!-- /tree -->
 </div><!-- /card -->
+<div class="scroll-hint">← 左右滑動查看 →</div>
 
 <div class="footer">郭氏族譜　世代傳承</div>
 
