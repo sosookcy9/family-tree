@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>郭氏族譜</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&family=Noto+Sans+TC:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&family=Noto+Sans+TC:wght@300;400&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink: #1a1208;
@@ -36,11 +36,13 @@
     }
 
     /* ── Header ── */
-    .header {
-      text-align: center;
+    .header-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 32px;
     }
-    .header::before, .header::after {
+    .header-wrap::before, .header-wrap::after {
       content: '';
       display: block;
       height: 2px;
@@ -49,12 +51,35 @@
       width: 320px;
       max-width: 90vw;
     }
+    .header {
+      text-align: center;
+    }
     .header h1 {
+      font-family: "Noto Serif TC", serif;
       font-size: clamp(32px, 8vw, 52px);
       font-weight: 600;
       color: var(--red);
       letter-spacing: 0.25em;
       text-shadow: 1px 1px 0 #fff6, 0 2px 8px #b8860b33;
+    }
+
+    /* ── Seal（卡片右下角）── */
+    .seal {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      width: 44px;
+      height: 44px;
+      background: #faf6ee;
+      border: 2px solid var(--red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--red);
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: 40px;
+      line-height: 1;
+      transform: rotate(10deg);
     }
 
     /* ── Card ── */
@@ -216,11 +241,14 @@
 <body>
 <div class="page-wrap">
 
+<div class="header-wrap">
 <div class="header">
   <h1>郭　氏　族　譜</h1>
 </div>
+</div>
 
 <div class="card">
+<div class="seal">郭</div>
 <div class="tree">
 
   <!-- 第一代 -->
@@ -508,7 +536,7 @@
 </div><!-- /tree -->
 </div><!-- /card -->
 
-<div class="footer">郭氏族譜　世代傳承</div>
+<div class="footer">世代相傳　血脈永續</div>
 
 </div><!-- /page-wrap -->
 
