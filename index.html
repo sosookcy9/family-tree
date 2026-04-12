@@ -15,29 +15,32 @@
       --parchment-dark: #f0e8d0;
       --red: #8b1a1a;
       --border: #c9a84c;
-      --line: #c9a84c66;
+      --line: #c9a84c88;
+      --indent: 28px;
+      --line-left: 14px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
+    html, body { margin: 0; padding: 0; background: #e8dfc8; }
+    body { font-family: "Noto Serif TC", serif; }
+    .page-wrap {
       background: #e8dfc8;
       background-image:
         repeating-linear-gradient(0deg, transparent, transparent 39px, #c9a84c22 39px, #c9a84c22 40px),
         repeating-linear-gradient(90deg, transparent, transparent 39px, #c9a84c11 39px, #c9a84c11 40px);
       min-height: 100vh;
-      font-family: "Noto Serif TC", serif;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 24px 12px 48px;
     }
 
-    /* Header */
+    /* ── Header ── */
     .header {
       text-align: center;
       margin-bottom: 32px;
-      position: relative;
     }
     .header::before, .header::after {
       content: '';
@@ -49,21 +52,14 @@
       max-width: 90vw;
     }
     .header h1 {
-      font-size: clamp(24px, 6vw, 38px);
+      font-size: clamp(32px, 8vw, 52px);
       font-weight: 600;
       color: var(--red);
       letter-spacing: 0.25em;
       text-shadow: 1px 1px 0 #fff6, 0 2px 8px #b8860b33;
     }
-    .header p {
-      font-size: 13px;
-      color: var(--ink-light);
-      letter-spacing: 0.1em;
-      margin-top: 4px;
-      font-family: "Noto Sans TC", sans-serif;
-    }
 
-    /* Card */
+    /* ── Card ── */
     .card {
       background: var(--parchment);
       border: 1px solid var(--border);
@@ -73,13 +69,11 @@
         4px 6px 24px #00000033;
       border-radius: 2px;
       width: 100%;
-      max-width: 860px;
+      max-width: 900px;
       padding: clamp(20px, 5vw, 48px) clamp(16px, 5vw, 52px);
       position: relative;
       overflow-x: auto;
     }
-
-    /* Corner ornaments */
     .card::before, .card::after {
       content: '❧';
       position: absolute;
@@ -90,75 +84,75 @@
     .card::before { top: 10px; right: 14px; }
     .card::after  { bottom: 10px; left: 14px; transform: rotate(180deg); }
 
-    /* Hint */
-    .hint {
-      font-family: "Noto Sans TC", sans-serif;
-      font-size: 12px;
-      color: var(--ink-light);
-      text-align: right;
-      margin-bottom: 16px;
-      opacity: 0.75;
-      letter-spacing: 0.05em;
-    }
-
-    /* Hidden checkboxes */
-    input[type="checkbox"] { display: none; }
-
-    /* Tree */
-    pre {
-      font-family: "Noto Serif TC", serif;
-      font-size: clamp(15px, 2.5vw, 20px);
-      line-height: 2.2;
-      white-space: pre;
+    /* ── Tree root ── */
+    .tree {
+      font-size: clamp(16px, 2.8vw, 22px);
+      line-height: 1;
       color: var(--ink);
-      letter-spacing: 0.03em;
     }
 
-    /* Clickable labels */
-    label {
+    /* ── Every person row ── */
+    .person {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 5px 0;
+      white-space: nowrap;
+    }
+
+    /* ── Couple (horizontal pair) ── */
+    .couple {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      flex-wrap: nowrap;  /* 不允許換行 */
+    }
+    .times {
+      color: var(--gold);
+      font-size: 0.85em;
+      margin: 0 2px;
+    }
+
+    /* ── Name label (clickable) ── */
+    .name {
       cursor: pointer;
       border-bottom: 1px dashed var(--gold);
       transition: color 0.2s, background 0.2s;
       padding: 0 2px;
       border-radius: 2px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;   /* 名字＋badge 同行 */
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0;
     }
-    label:hover {
+    .name:hover {
       color: var(--red);
       background: #b8860b18;
     }
+    .name.active {
+      color: var(--red);
+      border-bottom-style: solid;
+    }
 
-    /* Year badges */
+    /* ── Year badge ── */
     .year {
       display: none;
       font-family: "Noto Sans TC", sans-serif;
-      font-size: 0.78em;
+      font-size: 0.72em;
       color: #fff;
       background: var(--red);
       border-radius: 20px;
       padding: 1px 8px;
-      margin-left: 4px;
+      margin-left: 2px;
       letter-spacing: 0.04em;
       font-weight: 300;
       vertical-align: middle;
       white-space: nowrap;
     }
-
-    /* Show years on check */
-    #a:checked ~ pre label[for="a"] .year,
-    #b:checked ~ pre label[for="b"] .year,
-    #c:checked ~ pre label[for="c"] .year,
-    #d:checked ~ pre label[for="d"] .year,
-    #e:checked ~ pre label[for="e"] .year {
+    .name.active .year {
       display: inline-block;
       animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    #a:checked ~ pre label[for="a"],
-    #b:checked ~ pre label[for="b"],
-    #c:checked ~ pre label[for="c"],
-    #d:checked ~ pre label[for="d"],
-    #e:checked ~ pre label[for="e"] {
-      color: var(--red);
-      border-bottom-style: solid;
     }
 
     @keyframes popIn {
@@ -166,12 +160,55 @@
       to   { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* Tree lines color */
-    pre {
-      --tree-color: var(--gold);
+    /* ── Children block ── */
+    .children {
+      position: relative;
+      margin-left: var(--line-left);
+      padding-left: calc(var(--indent) - var(--line-left));
+      border-left: 1.5px solid var(--line);
     }
 
-    /* Footer */
+    /* ── Each child row connector ── */
+    .child-row {
+      position: relative;
+    }
+    .child-row::before {
+      content: '';
+      position: absolute;
+      left: calc(-1 * (var(--indent) - var(--line-left)));
+      top: calc(0.9em + 5px); /* vertically centers on the text */
+      width: calc(var(--indent) - var(--line-left) - 4px);
+      height: 1.5px;
+      background: var(--line);
+    }
+
+    /* Last child: clip the vertical line */
+    .child-row:last-child {
+      /* The border-left of .children continues through, we use a mask */
+    }
+    /* Override: end the vertical line at last child */
+    .children > .child-row:last-child::after {
+      content: '';
+      position: absolute;
+      left: calc(-1 * (var(--indent) - var(--line-left)) - 2px);
+      top: calc(0.9em + 5px + 1px);
+      width: 2px;
+      bottom: 0;
+      background: var(--parchment);
+      z-index: 1;
+    }
+
+    /* ── Note line (生父生母) ── */
+    .note {
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 0.75em;
+      color: var(--ink-light);
+      letter-spacing: 0.04em;
+      padding: 0 0 4px 0;
+      opacity: 0.85;
+    }
+
+    /* ── Footer ── */
     .footer {
       margin-top: 20px;
       font-family: "Noto Sans TC", sans-serif;
@@ -181,105 +218,317 @@
       letter-spacing: 0.08em;
     }
 
-    /* Mobile scroll hint */
     @media (max-width: 600px) {
-      .card {
-        padding: 16px 14px;
-      }
-      pre {
-        font-size: 15px;
-        line-height: 2.1;
-      }
-      .year {
-        font-size: 0.72em;
-        padding: 1px 6px;
-      }
+      .card { padding: 16px 14px; }
+      .tree { font-size: 16px; }
+      :root { --indent: 22px; --line-left: 11px; }
     }
   </style>
 </head>
 <body>
+<div class="page-wrap">
 
-  <div class="header">
-    <h1>郭　氏　族　譜</h1>
+<div class="header">
+  <h1>郭　氏　族　譜</h1>
+</div>
 
+<div class="card">
+<div class="tree">
+
+  <!-- 第一代 -->
+  <div class="person">
+    <div class="couple">
+      <span>郭新祿</span>
+      <span class="times">×</span>
+      <span class="name" onclick="toggle(this)">阮幼<span class="year">文久元年10月17日（1861）～明治45年2月10日（1912）</span></span>
+    </div>
   </div>
 
-  <div class="card">
+  <div class="children">
 
-    <input type="checkbox" id="a">
-    <input type="checkbox" id="b">
-    <input type="checkbox" id="c">
-    <input type="checkbox" id="d">
-    <input type="checkbox" id="e">
+    <!-- 次男 -->
+    <div class="child-row">
+      <div class="person">
+        <div class="couple">
+          <span>郭江溪（次男）</span>
+          <span class="times">×</span>
+          <span>郭張旦</span>
+        </div>
+      </div>
+    </div>
 
-<pre>
-郭新祿 × <label for="d">阮幼<span class="year">文久元年10月17日（1861）～明治45年2月10日（1912）</span></label>
-│
-├─ 郭江溪（次男）× 郭張旦
-├─ 郭阿傳（三男）
-└─ <label for="a">郭江漢（長子）<span class="year">明治12年12月23日（1879）～民國39年4月12日（1950）</span></label> × <label for="b">林蔥<span class="year">明治14年8月17日（1881）～民國50年10月5日（1961）</span></label>
-    │
-    └─ <label for="c">郭燦生<span class="year">大正13年8月13日（1924）～民國61年8月14日（1972）</span></label> × <label for="e">郭林梅金<span class="year">昭和5年1月30日（1930）～民國114年11月18日（2025）</span></label>
-       （生父：郭江溪（次男）／生母：郭張旦）
-        │
-        ├─ 郭慶鐘（長男）× 陳玉葉
-        │   ├─ 郭志輝（長男）
-        │   ├─ 郭炤裕（次男）
-        │   └─ 郭雅蘭（長女）
-        │
-        ├─ 郭慶煌（次男）× 陳麗卿
-        │   ├─ 郭致維（長男）× 何心華
-        │   └─ 郭致豪（次男）× 洪英慈
-        │       ├─ 郭承燁（長男）
-        │       ├─ 郭承晞（長女）
-        │       └─ 郭承祐（次男）
-        │
-        ├─ 郭慶珍（三男）× 王秀香
-        │   ├─ 郭韋彤（長女）
-        │   ├─ 郭沛璇（次女）× 張仕楷
-        │   │   ├─ 張芷瑜（長女）
-        │   │   ├─ 郭芷熏（次女）
-        │   │   └─ 張若琳（三女）
-        │   ├─ 郭庭妤（三女）× 王莀幃
-        │   │   └─ 王竑喬（長子）
-        │   └─ 郭惠菱（四女）
-        │
-        ├─ 郭淑惠（長女）× 黃瑞昌
-        │   ├─ 黃明傑（長男）× 盧思妤
-        │   │   ├─ 黃振晏（長子）
-        │   │   └─ 黃雨涵（長女）
-        │   └─ 黃明祥（次男）× 許念慈
-        │       ├─ 黃盈甄（長女）
-        │       ├─ 黃永鎬（長子）
-        │       └─ 黃翊萁（次女）
-        │
-        ├─ 郭淑芬（次女）× 莊添財
-        │   ├─ 莊佳怡（長女）
-        │   ├─ 莊凱麟（長男）
-        │   └─ 莊培君（次女）
-        │
-        ├─ 郭慶隆（四男）× 莊玉琴
-        │   ├─ 郭宏哲（長男）× 呂雅芬
-        │   │   ├─ 郭苡甯（長女）
-        │   │   └─ 郭苡希（次女）
-        │   ├─ 郭晧晟（次男）
-        │   └─ 郭文玲（長女）× 林正揚
-        │
-        └─ 郭慶銘（五男）× 林玉蕊
-            ├─ 郭振育（長男）× 莊翎芸
-            │   ├─ 郭宇樂（長男）
-            │   └─ 郭宇晨（次男）
-            │
-            ├─ 郭奕帆（長女）
-            │   ├─ 徐辰閔（長男）
-            │   └─ 徐辰瑀（長女）
-            │
-            └─ 郭景宜（次女）
-                └─ 郭達曄（長男）
-</pre>
-  </div>
+    <!-- 三男 -->
+    <div class="child-row">
+      <div class="person">
+        <span>郭阿傳（三男）</span>
+      </div>
+    </div>
 
-  <div class="footer">郭氏族譜　世代傳承</div>
+    <!-- 長子 -->
+    <div class="child-row">
+      <div class="person">
+        <div class="couple">
+          <span class="name" onclick="toggle(this)">郭江漢（長子）<span class="year">明治12年12月23日（1879）～民國39年4月12日（1950）</span></span>
+          <span class="times">×</span>
+          <span class="name" onclick="toggle(this)">林蔥<span class="year">明治14年8月17日（1881）～民國50年10月5日（1961）</span></span>
+        </div>
+      </div>
+
+      <div class="children">
+        <div class="child-row">
+          <div class="person">
+            <div class="couple">
+              <span class="name" onclick="toggle(this)">郭燦生<span class="year">大正13年8月13日（1924）～民國61年8月14日（1972）</span></span>
+              <span class="times">×</span>
+              <span class="name" onclick="toggle(this)">郭林梅金<span class="year">昭和5年1月30日（1930）～民國114年11月18日（2025）</span></span>
+            </div>
+          </div>
+          <div class="note">（生父：郭江溪（次男）／生母：郭張旦）</div>
+
+          <div class="children">
+
+            <!-- 慶鐘 -->
+            <div class="child-row">
+              <div class="person">
+                <div class="couple">
+                  <span>郭慶鐘（長男）</span>
+                  <span class="times">×</span>
+                  <span>陳玉葉</span>
+                </div>
+              </div>
+              <div class="children">
+                <div class="child-row"><div class="person"><span>郭志輝（長男）</span></div></div>
+                <div class="child-row"><div class="person"><span>郭炤裕（次男）</span></div></div>
+                <div class="child-row"><div class="person"><span>郭雅蘭（長女）</span></div></div>
+              </div>
+            </div>
+
+            <!-- 慶煌 -->
+            <div class="child-row">
+              <div class="person">
+                <div class="couple">
+                  <span>郭慶煌（次男）</span>
+                  <span class="times">×</span>
+                  <span>陳麗卿</span>
+                </div>
+              </div>
+              <div class="children">
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>郭致維（長男）</span>
+                      <span class="times">×</span>
+                      <span>何心華</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>郭致豪（次男）</span>
+                      <span class="times">×</span>
+                      <span>洪英慈</span>
+                    </div>
+                  </div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>郭承燁（長男）</span></div></div>
+                    <div class="child-row"><div class="person"><span>郭承晞（長女）</span></div></div>
+                    <div class="child-row"><div class="person"><span>郭承祐（次男）</span></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 慶珍 -->
+            <div class="child-row">
+              <div class="person">
+                <div class="couple">
+                  <span>郭慶珍（三男）</span>
+                  <span class="times">×</span>
+                  <span>王秀香</span>
+                </div>
+              </div>
+              <div class="children">
+                <div class="child-row"><div class="person"><span>郭韋彤（長女）</span></div></div>
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>郭沛璇（次女）</span>
+                      <span class="times">×</span>
+                      <span>張仕楷</span>
+                    </div>
+                  </div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>張芷瑜（長女）</span></div></div>
+                    <div class="child-row"><div class="person"><span>郭芷熏（次女）</span></div></div>
+                    <div class="child-row"><div class="person"><span>張若琳（三女）</span></div></div>
+                  </div>
+                </div>
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>郭庭妤（三女）</span>
+                      <span class="times">×</span>
+                      <span>王莀幃</span>
+                    </div>
+                  </div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>王竑喬（長子）</span></div></div>
+                  </div>
+                </div>
+                <div class="child-row"><div class="person"><span>郭惠菱（四女）</span></div></div>
+              </div>
+            </div>
+
+            <!-- 淑惠 -->
+            <div class="child-row">
+              <div class="person">
+                <div class="couple">
+                  <span>郭淑惠（長女）</span>
+                  <span class="times">×</span>
+                  <span>黃瑞昌</span>
+                </div>
+              </div>
+              <div class="children">
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>黃明傑（長男）</span>
+                      <span class="times">×</span>
+                      <span>盧思妤</span>
+                    </div>
+                  </div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>黃振晏（長子）</span></div></div>
+                    <div class="child-row"><div class="person"><span>黃雨涵（長女）</span></div></div>
+                  </div>
+                </div>
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>黃明祥（次男）</span>
+                      <span class="times">×</span>
+                      <span>許念慈</span>
+                    </div>
+                  </div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>黃盈甄（長女）</span></div></div>
+                    <div class="child-row"><div class="person"><span>黃永鎬（長子）</span></div></div>
+                    <div class="child-row"><div class="person"><span>黃翊萁（次女）</span></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 淑芬 -->
+            <div class="child-row">
+              <div class="person">
+                <div class="couple">
+                  <span>郭淑芬（次女）</span>
+                  <span class="times">×</span>
+                  <span>莊添財</span>
+                </div>
+              </div>
+              <div class="children">
+                <div class="child-row"><div class="person"><span>莊佳怡（長女）</span></div></div>
+                <div class="child-row"><div class="person"><span>莊凱麟（長男）</span></div></div>
+                <div class="child-row"><div class="person"><span>莊培君（次女）</span></div></div>
+              </div>
+            </div>
+
+            <!-- 慶隆 -->
+            <div class="child-row">
+              <div class="person">
+                <div class="couple">
+                  <span>郭慶隆（四男）</span>
+                  <span class="times">×</span>
+                  <span>莊玉琴</span>
+                </div>
+              </div>
+              <div class="children">
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>郭宏哲（長男）</span>
+                      <span class="times">×</span>
+                      <span>呂雅芬</span>
+                    </div>
+                  </div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>郭苡甯（長女）</span></div></div>
+                    <div class="child-row"><div class="person"><span>郭苡希（次女）</span></div></div>
+                  </div>
+                </div>
+                <div class="child-row"><div class="person"><span>郭晧晟（次男）</span></div></div>
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>郭文玲（長女）</span>
+                      <span class="times">×</span>
+                      <span>林正揚</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 慶銘 -->
+            <div class="child-row">
+              <div class="person">
+                <div class="couple">
+                  <span>郭慶銘（五男）</span>
+                  <span class="times">×</span>
+                  <span>林玉蕊</span>
+                </div>
+              </div>
+              <div class="children">
+                <div class="child-row">
+                  <div class="person">
+                    <div class="couple">
+                      <span>郭振育（長男）</span>
+                      <span class="times">×</span>
+                      <span>莊翎芸</span>
+                    </div>
+                  </div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>郭宇樂（長男）</span></div></div>
+                    <div class="child-row"><div class="person"><span>郭宇晨（次男）</span></div></div>
+                  </div>
+                </div>
+                <div class="child-row">
+                  <div class="person"><span>郭奕帆（長女）</span></div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>徐辰閔（長男）</span></div></div>
+                    <div class="child-row"><div class="person"><span>徐辰瑀（長女）</span></div></div>
+                  </div>
+                </div>
+                <div class="child-row">
+                  <div class="person"><span>郭景宜（次女）</span></div>
+                  <div class="children">
+                    <div class="child-row"><div class="person"><span>郭達曄（長男）</span></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /燦生 children -->
+        </div>
+      </div><!-- /江漢 children -->
+    </div>
+
+  </div><!-- /新祿 children -->
+</div><!-- /tree -->
+</div><!-- /card -->
+
+<div class="footer">郭氏族譜　世代傳承</div>
+
+</div><!-- /page-wrap -->
+
+<script>
+  function toggle(el) {
+    el.classList.toggle('active');
+  }
+</script>
 
 </body>
 </html>
