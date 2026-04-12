@@ -4,58 +4,223 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>郭氏族譜</title>
-
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&family=Noto+Sans+TC:wght@300;400&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --ink: #1a1208;
+      --ink-light: #5c4a2a;
+      --gold: #b8860b;
+      --gold-light: #d4a843;
+      --parchment: #faf6ee;
+      --parchment-dark: #f0e8d0;
+      --red: #8b1a1a;
+      --border: #c9a84c;
+      --line: #c9a84c66;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      margin: 0;
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: #e8dfc8;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, #c9a84c22 39px, #c9a84c22 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, #c9a84c11 39px, #c9a84c11 40px);
       min-height: 100vh;
+      font-family: "Noto Serif TC", serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 12px 48px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .header::before, .header::after {
+      content: '';
+      display: block;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 8px auto;
+      width: 320px;
+      max-width: 90vw;
+    }
+    .header h1 {
+      font-size: clamp(24px, 6vw, 38px);
+      font-weight: 600;
+      color: var(--red);
+      letter-spacing: 0.25em;
+      text-shadow: 1px 1px 0 #fff6, 0 2px 8px #b8860b33;
+    }
+    .header p {
+      font-size: 13px;
+      color: var(--ink-light);
+      letter-spacing: 0.1em;
+      margin-top: 4px;
       font-family: "Noto Sans TC", sans-serif;
     }
 
-    .page {
-      background: white;
-      padding: 40px;
-      width: 1120px;
-      max-width: 95vw;
-      box-sizing: border-box;
+    /* Card */
+    .card {
+      background: var(--parchment);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 0 0 4px var(--parchment),
+        0 0 0 5px var(--border),
+        4px 6px 24px #00000033;
+      border-radius: 2px;
+      width: 100%;
+      max-width: 860px;
+      padding: clamp(20px, 5vw, 48px) clamp(16px, 5vw, 52px);
+      position: relative;
+      overflow-x: auto;
     }
 
+    /* Corner ornaments */
+    .card::before, .card::after {
+      content: '❧';
+      position: absolute;
+      color: var(--gold);
+      font-size: 20px;
+      opacity: 0.6;
+    }
+    .card::before { top: 10px; right: 14px; }
+    .card::after  { bottom: 10px; left: 14px; transform: rotate(180deg); }
+
+    /* Hint */
+    .hint {
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 12px;
+      color: var(--ink-light);
+      text-align: right;
+      margin-bottom: 16px;
+      opacity: 0.75;
+      letter-spacing: 0.05em;
+    }
+
+    /* Hidden checkboxes */
+    input[type="checkbox"] { display: none; }
+
+    /* Tree */
     pre {
-      font-size: 18px;
-      line-height: 1.8;
+      font-family: "Noto Serif TC", serif;
+      font-size: clamp(15px, 2.5vw, 20px);
+      line-height: 2.2;
       white-space: pre;
+      color: var(--ink);
+      letter-spacing: 0.03em;
     }
 
-    @media (max-width: 768px) {
-      body {
-        align-items: flex-start;
-      }
-      .page {
-        padding: 20px;
+    /* Clickable labels */
+    label {
+      cursor: pointer;
+      border-bottom: 1px dashed var(--gold);
+      transition: color 0.2s, background 0.2s;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    label:hover {
+      color: var(--red);
+      background: #b8860b18;
+    }
+
+    /* Year badges */
+    .year {
+      display: none;
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 0.78em;
+      color: #fff;
+      background: var(--red);
+      border-radius: 20px;
+      padding: 1px 8px;
+      margin-left: 4px;
+      letter-spacing: 0.04em;
+      font-weight: 300;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* Show years on check */
+    #a:checked ~ pre label[for="a"] .year,
+    #b:checked ~ pre label[for="b"] .year,
+    #c:checked ~ pre label[for="c"] .year,
+    #d:checked ~ pre label[for="d"] .year,
+    #e:checked ~ pre label[for="e"] .year {
+      display: inline-block;
+      animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #a:checked ~ pre label[for="a"],
+    #b:checked ~ pre label[for="b"],
+    #c:checked ~ pre label[for="c"],
+    #d:checked ~ pre label[for="d"],
+    #e:checked ~ pre label[for="e"] {
+      color: var(--red);
+      border-bottom-style: solid;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.7) translateY(4px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Tree lines color */
+    pre {
+      --tree-color: var(--gold);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 20px;
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 11px;
+      color: var(--ink-light);
+      opacity: 0.6;
+      letter-spacing: 0.08em;
+    }
+
+    /* Mobile scroll hint */
+    @media (max-width: 600px) {
+      .card {
+        padding: 16px 14px;
       }
       pre {
-        font-size: 16px;
+        font-size: 15px;
+        line-height: 2.1;
+      }
+      .year {
+        font-size: 0.72em;
+        padding: 1px 6px;
       }
     }
   </style>
 </head>
-
 <body>
 
-<div class="page">
+  <div class="header">
+    <h1>郭　氏　族　譜</h1>
+
+  </div>
+
+  <div class="card">
+
+    <input type="checkbox" id="a">
+    <input type="checkbox" id="b">
+    <input type="checkbox" id="c">
+    <input type="checkbox" id="d">
+    <input type="checkbox" id="e">
+
 <pre>
-郭新祿 × 阮幼
+郭新祿 × <label for="d">阮幼<span class="year">1861.10.17 – 1912.02.10</span></label>
 │
 ├─ 郭江溪（次男）× 郭張旦
 ├─ 郭阿傳（三男）
-└─ 郭江漢（長子）× 林聰
+└─ <label for="a">郭江漢（長子）<span class="year">1879.12.13 – 1950.04.12</span></label> × <label for="b">林蔥<span class="year">1881.08.17 – 1961.10.05</span></label>
     │
-    └─ 郭燦生 × 郭林梅金
-       （生父：郭江溪（次男）× 郭張旦）
+    └─ <label for="c">郭燦生<span class="year">1924.08.13 – 1972.08.14</span></label> × <label for="e">郭林梅金<span class="year">1930.01.30 – 2025.11.18</span></label>
+       （生父：郭江溪（次男）／生母：郭張旦）
         │
         ├─ 郭慶鐘（長男）× 陳玉葉
         │   ├─ 郭志輝（長男）
@@ -112,7 +277,9 @@
             └─ 郭景宜（次女）
                 └─ 郭達曄（長男）
 </pre>
-</div>
+  </div>
+
+  <div class="footer">郭氏族譜　世代傳承</div>
 
 </body>
 </html>
