@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>郭氏族譜</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1208;
+      --ink-light: #5c4a2a;
+      --gold: #b8860b;
+      --parchment: #faf6ee;
+      --red: #8b1a1a;
+      --seal-red: #a01818;
+      --border: #c9a84c;
+      --line: #5c4a2a66;
+      --indent: 28px;
+      --line-left: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { margin: 0; padding: 0; background: #e8dfc8; }
+    body { font-family: "Noto Serif TC", serif; }
+
+    .page-wrap {
+      background: #e8dfc8;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, #c9a84c22 39px, #c9a84c22 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, #c9a84c11 39px, #c9a84c11 40px);
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 12px 48px;
+    }
+
+    /* ── Header ── */
+    .header-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .header-wrap::before, .header-wrap::after {
+      content: '';
+      display: block;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 8px auto;
+      width: 320px;
+      max-width: 90vw;
+    }
+    .header {
+      text-align: center;
+    }
+    .header h1 {
+      font-family: "Noto Serif TC", serif;
+      font-size: clamp(32px, 8vw, 52px);
+      font-weight: 700;
+      color: var(--red);
+      letter-spacing: 0.25em;
+      text-shadow:
+        1px 1px 0 #fff8,
+        0 1px 2px rgba(26, 18, 8, 0.25),
+        0 2px 10px #b8860b22;
+    }
+
+    /* ── 印章（SVG 朱泥鈐印，蓋於內容結尾偏右） ── */
+    .seal {
+      position: absolute;
+      right: clamp(60px, 10%, 120px);
+      bottom: clamp(24px, 4vw, 40px);
+      width: 78px;
+      height: 78px;
+      transform: rotate(-2deg);
+      pointer-events: none;
+      z-index: 2;
+      mix-blend-mode: multiply;
+      filter: contrast(1.05) saturate(1.1);
+    }
+    .seal svg { width: 100%; height: 100%; display: block; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--parchment);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 0 0 4px var(--parchment),
+        0 0 0 5px var(--border),
+        4px 6px 24px #00000033;
+      border-radius: 2px;
+      width: 100%;
+      max-width: 900px;
+      padding: clamp(20px, 5vw, 48px) clamp(16px, 5vw, 52px);
+      padding-bottom: clamp(56px, 8vw, 88px);
+      position: relative;
+      overflow-x: auto;
+    }
+
+    /* ── Tree root ── */
+    .tree {
+      font-size: clamp(16px, 2.8vw, 22px);
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .person {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 5px 0;
+      white-space: nowrap;
+    }
+
+    .couple {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      flex-wrap: nowrap;
+    }
+    .times {
+      color: var(--gold);
+      font-size: 0.85em;
+      margin: 0 2px;
+    }
+
+    /* ── Name（有生卒年：按鈕，可點） ── */
+    .name {
+      cursor: pointer;
+      background: none;
+      border: none;
+      border-bottom: 1px dashed var(--gold);
+      transition: color 0.2s, background 0.2s;
+      padding: 0 2px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      font-family: inherit;
+      font-size: inherit;
+      color: var(--ink);
+    }
+    .name:hover { color: var(--red); background: #b8860b18; }
+    .name:focus-visible {
+      outline: 1px dashed var(--red);
+      outline-offset: 3px;
+    }
+    .name.active { color: var(--red); border-bottom-style: solid; }
+
+    /* ── Name-static（無生卒年：純文字，不可點） ── */
+    .name-static {
+      padding: 0 2px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      color: var(--ink);
+    }
+
+    /* ── 生卒年（展開後顯示於名字下方） ── */
+    .year {
+      display: none;
+      font-family: "Noto Serif TC", serif;
+      font-size: 0.68em;
+      color: var(--ink-light);
+      letter-spacing: 0.06em;
+      font-weight: 400;
+      white-space: nowrap;
+      margin-top: 4px;
+      padding: 4px 8px 4px 10px;
+      border-left: 2px solid var(--gold);
+      background: linear-gradient(90deg, #b8860b12, transparent);
+    }
+    .person-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .name.active + .year,
+    .person-wrap:has(.name.active) > .year {
+      display: inline-block;
+      animation: slideIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Children（乾淨連接線：用 background 畫主幹） ── */
+    .children {
+      position: relative;
+      margin-left: var(--line-left);
+      padding-left: calc(var(--indent) - var(--line-left));
+      background-image: linear-gradient(var(--line), var(--line));
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: 1.5px var(--trunk, 100%);
+    }
+
+    .child-row {
+      position: relative;
+    }
+    .child-row::before {
+      content: '';
+      position: absolute;
+      left: calc(-1 * (var(--indent) - var(--line-left)));
+      top: calc(0.9em + 5px);
+      width: calc(var(--indent) - var(--line-left) - 4px);
+      height: 1.5px;
+      background: var(--line);
+    }
+
+    /* ── Note（生父生母註記） ── */
+    .note {
+      font-family: "Noto Serif TC", serif;
+      font-size: 0.78em;
+      color: var(--ink-light);
+      letter-spacing: 0.08em;
+      font-weight: 400;
+      padding: 4px 0 6px 12px;
+      margin-left: 2px;
+      border-left: 2px solid var(--gold);
+      background: linear-gradient(90deg, #b8860b12, transparent);
+      display: inline-block;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 20px;
+      font-family: "Noto Serif TC", serif;
+      font-size: 13px;
+      color: var(--ink-light);
+      opacity: 0.75;
+      letter-spacing: 0.2em;
+      font-weight: 400;
+    }
+    .footer .sep {
+      display: inline-block;
+      margin: 0 14px;
+      color: var(--gold);
+      font-size: 0.8em;
+      vertical-align: 0.1em;
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 16px 14px; padding-bottom: 76px; }
+      .tree { font-size: 16px; }
+      :root { --indent: 22px; --line-left: 11px; }
+      .seal { width: 62px; height: 62px; right: clamp(32px, 12%, 80px); bottom: clamp(20px, 4vw, 32px); }
+    }
+
+    @media print {
+      body, .page-wrap { background: white; }
+      .page-wrap { background-image: none; }
+      .card { box-shadow: none; }
+      .year { display: inline-block !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="header-wrap">
+    <div class="header">
+      <h1>郭　氏　族　譜</h1>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tree" id="tree"></div>
+    <div class="seal" aria-label="郭氏印" role="img">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="sealTexture" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9" result="noise"/>
+            <feColorMatrix in="noise" type="matrix" values="
+              0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 -2 1.4" result="alphaMask"/>
+            <feComposite in="SourceGraphic" in2="alphaMask" operator="in"/>
+          </filter>
+          <filter id="edgeRough" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.18" numOctaves="2" seed="5" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5"/>
+          </filter>
+          <radialGradient id="cinnabar" cx="50%" cy="45%" r="60%">
+            <stop offset="0%" stop-color="#b42020"/>
+            <stop offset="70%" stop-color="#9a1515"/>
+            <stop offset="100%" stop-color="#760c0c"/>
+          </radialGradient>
+        </defs>
+
+        <!-- 印章主體 + 內框白邊 -->
+        <g filter="url(#edgeRough)">
+          <rect x="5" y="5" width="90" height="90" fill="url(#cinnabar)" rx="1" ry="1"/>
+          <rect x="10" y="10" width="80" height="80" fill="none" stroke="#faf0d8" stroke-width="1.2"/>
+        </g>
+
+        <!-- 「郭」字（真正的字體渲染） -->
+        <text x="50" y="52"
+              text-anchor="middle"
+              dominant-baseline="central"
+              font-family="'Noto Serif TC', 'STKaiti', 'KaiTi', 'BiauKai', serif"
+              font-size="60"
+              font-weight="900"
+              fill="#faf0d8">郭</text>
+
+        <!-- 斑駁層 -->
+        <rect x="5" y="5" width="90" height="90"
+              fill="#faf0d8" filter="url(#sealTexture)" opacity="0.32"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="footer">世代相傳<span class="sep">◆</span>血脈永續</div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   家族資料（JSON）
+   欄位：name / rank / birth / death / spouse / note / children
+   ══════════════════════════════════════════════ */
+const familyData = {
+  name: "郭新祿",
+  spouse: {
+    name: "阮幼",
+    birth: "文久元年10月17日（1861）",
+    death: "明治45年2月10日（1912）"
+  },
+  children: [
+    { name: "郭江溪", rank: "次男", spouse: { name: "郭張旦" } },
+    { name: "郭阿傳", rank: "三男" },
+    {
+      name: "郭江漢",
+      rank: "長男",
+      birth: "明治12年12月23日（1879）",
+      death: "民國39年4月12日（1950）",
+      spouse: {
+        name: "林蔥",
+        birth: "明治14年8月17日（1881）",
+        death: "民國50年10月5日（1961）"
+      },
+      children: [
+        {
+          name: "郭燦生",
+          birth: "大正13年8月13日（1924）",
+          death: "民國61年8月14日（1972）",
+          spouse: {
+            name: "郭林梅金",
+            birth: "昭和5年1月30日（1930）",
+            death: "民國114年11月18日（2025）"
+          },
+          note: "生父生母：郭江溪　郭張旦",
+          children: [
+            {
+              name: "郭慶鐘", rank: "長男",
+              spouse: { name: "陳玉葉" },
+              children: [
+                { name: "郭志輝", rank: "長男" },
+                { name: "郭炤裕", rank: "次男" },
+                { name: "郭雅蘭", rank: "長女" }
+              ]
+            },
+            {
+              name: "郭慶煌", rank: "次男",
+              spouse: { name: "陳麗卿" },
+              children: [
+                { name: "郭致維", rank: "長男", spouse: { name: "何心華" } },
+                {
+                  name: "郭致豪", rank: "次男",
+                  spouse: { name: "洪英慈" },
+                  children: [
+                    { name: "郭承燁", rank: "長男" },
+                    { name: "郭承晞", rank: "長女" },
+                    { name: "郭承祐", rank: "次男" }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "郭慶珍", rank: "三男",
+              spouse: { name: "王秀香" },
+              children: [
+                { name: "郭韋彤", rank: "長女" },
+                {
+                  name: "郭沛璇", rank: "次女",
+                  spouse: { name: "張仕楷" },
+                  children: [
+                    { name: "張芷瑜", rank: "長女" },
+                    { name: "郭芷熏", rank: "次女" },
+                    { name: "張若琳", rank: "三女" }
+                  ]
+                },
+                {
+                  name: "郭庭妤", rank: "三女",
+                  spouse: { name: "王莀幃" },
+                  children: [ { name: "王竑喬", rank: "長男" } ]
+                },
+                { name: "郭惠菱", rank: "四女" }
+              ]
+            },
+            {
+              name: "郭淑惠", rank: "長女",
+              spouse: { name: "黃瑞昌" },
+              children: [
+                {
+                  name: "黃明傑", rank: "長男",
+                  spouse: { name: "盧思妤" },
+                  children: [
+                    { name: "黃振晏", rank: "長男" },
+                    { name: "黃雨涵", rank: "長女" }
+                  ]
+                },
+                {
+                  name: "黃明祥", rank: "次男",
+                  spouse: { name: "許念慈" },
+                  children: [
+                    { name: "黃盈甄", rank: "長女" },
+                    { name: "黃永鎬", rank: "長男" },
+                    { name: "黃翊萁", rank: "次女" }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "郭淑芬", rank: "次女",
+              spouse: { name: "莊添財" },
+              children: [
+                { name: "莊佳怡", rank: "長女" },
+                { name: "莊凱麟", rank: "長男" },
+                { name: "莊培君", rank: "次女" }
+              ]
+            },
+            {
+              name: "郭慶隆", rank: "四男",
+              spouse: { name: "莊玉琴" },
+              children: [
+                {
+                  name: "郭宏哲", rank: "長男",
+                  spouse: { name: "呂雅芬" },
+                  children: [
+                    { name: "郭苡甯", rank: "長女" },
+                    { name: "郭苡希", rank: "次女" }
+                  ]
+                },
+                { name: "郭晧晟", rank: "次男" },
+                { name: "郭文玲", rank: "長女", spouse: { name: "林正揚" } }
+              ]
+            },
+            {
+              name: "郭慶銘", rank: "五男",
+              spouse: { name: "林玉蕊" },
+              children: [
+                {
+                  name: "郭振育", rank: "長男",
+                  spouse: { name: "莊翎芸" },
+                  children: [
+                    { name: "郭宇樂", rank: "長男" },
+                    { name: "郭宇晨", rank: "次男" }
+                  ]
+                },
+                {
+                  name: "郭奕帆", rank: "長女",
+                  children: [
+                    { name: "徐辰閔", rank: "長男" },
+                    { name: "徐辰瑀", rank: "長女" }
+                  ]
+                },
+                {
+                  name: "郭景宜", rank: "次女",
+                  children: [ { name: "郭達曄", rank: "長男" } ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+  ));
+}
+
+function lifeText(p) {
+  if (!p.birth && !p.death) return '';
+  const parts = [];
+  if (p.birth) parts.push(p.birth);
+  if (p.death) parts.push(p.death);
+  return parts.join('～');
+}
+
+function renderName(p, includeRank = true) {
+  const life = lifeText(p);
+  const rankSuffix = (includeRank && p.rank) ? `（${p.rank}）` : '';
+  const label = esc(p.name) + rankSuffix;
+
+  if (life) {
+    return `<span class="person-wrap">`
+      + `<button class="name" type="button" data-life="1" aria-label="${esc(p.name)}，查看生卒年">${label}</button>`
+      + `<span class="year">${esc(life)}</span>`
+      + `</span>`;
+  }
+  return `<span class="name-static">${label}</span>`;
+}
+
+function renderPerson(p) {
+  if (p.spouse) {
+    return `<div class="couple">${renderName(p, true)}<span class="times">×</span>${renderName(p.spouse, false)}</div>`;
+  }
+  return renderName(p, true);
+}
+
+function renderNode(p) {
+  const kids = p.children || [];
+  let html = `<div class="person">${renderPerson(p)}</div>`;
+
+  if (p.note) {
+    html += `<div class="note">${esc(p.note)}</div>`;
+  }
+
+  if (kids.length) {
+    html += `<div class="children">`;
+    kids.forEach(k => {
+      html += `<div class="child-row">${renderNode(k)}</div>`;
+    });
+    html += `</div>`;
+  }
+  return html;
+}
+
+const tree = document.getElementById('tree');
+tree.innerHTML = renderNode(familyData);
+
+/* ══════ 精確計算主幹高度（不用白色遮罩 hack） ══════ */
+function adjustTrunks() {
+  document.querySelectorAll('.children').forEach(c => {
+    const lastChild = c.lastElementChild;
+    if (!lastChild) return;
+    const cRect = c.getBoundingClientRect();
+    const lastRect = lastChild.getBoundingClientRect();
+    const fontSize = parseFloat(getComputedStyle(c).fontSize);
+    const topOffset = fontSize * 0.9 + 5;
+    const lastChildTop = lastRect.top - cRect.top;
+    c.style.setProperty('--trunk', `${lastChildTop + topOffset}px`);
+  });
+}
+requestAnimationFrame(adjustTrunks);
+window.addEventListener('resize', () => requestAnimationFrame(adjustTrunks));
+// 字體載入後重算
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(adjustTrunks);
+}
+
+/* ══════ 互動：事件委派 ══════ */
+tree.addEventListener('click', (e) => {
+  const btn = e.target.closest('.name[data-life]');
+  if (!btn) return;
+  document.querySelectorAll('.name.active').forEach(el => {
+    if (el !== btn) el.classList.remove('active');
+  });
+  btn.classList.toggle('active');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.name.active').forEach(el => el.classList.remove('active'));
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.name')) {
+    document.querySelectorAll('.name.active').forEach(el => el.classList.remove('active'));
+  }
+});
+</script>
+
+</body>
+</html>
