@@ -73,8 +73,8 @@
       position: absolute;
       right: clamp(60px, 10%, 120px);
       bottom: clamp(24px, 4vw, 40px);
-      width: 78px;
-      height: 78px;
+      width: 72px;
+      height: 72px;
       transform: rotate(-2deg);
       pointer-events: none;
       z-index: 2;
@@ -247,14 +247,21 @@
       .card { padding: 16px 14px; padding-bottom: 76px; }
       .tree { font-size: 16px; }
       :root { --indent: 22px; --line-left: 11px; }
-      .seal { width: 62px; height: 62px; right: clamp(32px, 12%, 80px); bottom: clamp(20px, 4vw, 32px); }
+      .seal { width: 52px; height: 52px; right: clamp(32px, 12%, 80px); bottom: clamp(20px, 4vw, 32px); }
     }
 
     @media print {
       body, .page-wrap { background: white; }
-      .page-wrap { background-image: none; }
-      .card { box-shadow: none; }
+      .page-wrap { background-image: none; padding: 0; }
+      .card {
+        box-shadow: none;
+        overflow: visible;
+        max-width: 100%;
+        page-break-inside: auto;
+      }
       .year { display: inline-block !important; }
+      /* 避免單一人名節點被切到兩頁 */
+      .person, .couple, .child-row { page-break-inside: avoid; break-inside: avoid; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -280,7 +287,7 @@
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <filter id="sealTexture" x="-5%" y="-5%" width="110%" height="110%">
-            <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9" result="noise"/>
+            <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="9" result="noise"/>
             <feColorMatrix in="noise" type="matrix" values="
               0 0 0 0 0
               0 0 0 0 0
@@ -290,7 +297,7 @@
           </filter>
           <filter id="edgeRough" x="-10%" y="-10%" width="120%" height="120%">
             <feTurbulence type="fractalNoise" baseFrequency="0.18" numOctaves="2" seed="5" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4.5"/>
           </filter>
           <radialGradient id="cinnabar" cx="50%" cy="45%" r="60%">
             <stop offset="0%" stop-color="#b42020"/>
@@ -316,7 +323,7 @@
 
         <!-- 斑駁層 -->
         <rect x="5" y="5" width="90" height="90"
-              fill="#faf0d8" filter="url(#sealTexture)" opacity="0.32"/>
+              fill="#faf0d8" filter="url(#sealTexture)" opacity="0.48"/>
       </svg>
     </div>
   </div>
@@ -511,7 +518,7 @@ function renderName(p, includeRank = true) {
 
   if (life) {
     return `<span class="person-wrap">`
-      + `<button class="name" type="button" data-life="1" aria-label="${esc(p.name)}，查看生卒年">${label}</button>`
+      + `<button class="name" type="button" aria-expanded="false">${label}</button>`
       + `<span class="year">${esc(life)}</span>`
       + `</span>`;
   }
@@ -559,8 +566,14 @@ function adjustTrunks() {
     c.style.setProperty('--trunk', `${lastChildTop + topOffset}px`);
   });
 }
-requestAnimationFrame(adjustTrunks);
-window.addEventListener('resize', () => requestAnimationFrame(adjustTrunks));
+function scheduleAdjust() {
+  // 雙 rAF：第一次讓瀏覽器完成 reflow（含 clamp() 字體變化），第二次才量測
+  requestAnimationFrame(() => requestAnimationFrame(adjustTrunks));
+}
+
+scheduleAdjust();
+window.addEventListener('resize', scheduleAdjust);
+window.addEventListener('beforeprint', adjustTrunks);
 // 字體載入後重算
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(adjustTrunks);
@@ -568,23 +581,35 @@ if (document.fonts && document.fonts.ready) {
 
 /* ══════ 互動：事件委派 ══════ */
 tree.addEventListener('click', (e) => {
-  const btn = e.target.closest('.name[data-life]');
+  const btn = e.target.closest('button.name');
   if (!btn) return;
-  document.querySelectorAll('.name.active').forEach(el => {
-    if (el !== btn) el.classList.remove('active');
+  // 關掉其他展開中的
+  document.querySelectorAll('button.name.active').forEach(el => {
+    if (el !== btn) {
+      el.classList.remove('active');
+      el.setAttribute('aria-expanded', 'false');
+    }
   });
-  btn.classList.toggle('active');
+  // 切換自己
+  const isOpen = btn.classList.toggle('active');
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 });
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('.name.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('button.name.active').forEach(el => {
+      el.classList.remove('active');
+      el.setAttribute('aria-expanded', 'false');
+    });
   }
 });
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.name')) {
-    document.querySelectorAll('.name.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('button.name.active').forEach(el => {
+      el.classList.remove('active');
+      el.setAttribute('aria-expanded', 'false');
+    });
   }
 });
 </script>
