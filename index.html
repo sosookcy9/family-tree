@@ -187,6 +187,41 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
+    /* ── 展開／收合按鈕（方案三：— / ＋） ── */
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--gold);
+      background: transparent;
+      border-radius: 1px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--ink-light);
+      padding: 0;
+      flex-shrink: 0;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+      vertical-align: middle;
+      margin-right: 5px;
+      font-family: "Noto Serif TC", serif;
+      line-height: 1;
+      position: relative;
+      top: -1px;
+      letter-spacing: 0;
+    }
+    .toggle-btn:hover {
+      background: #b8860b18;
+      border-color: var(--red);
+      color: var(--red);
+    }
+    .toggle-btn:focus-visible {
+      outline: 1px dashed var(--red);
+      outline-offset: 2px;
+    }
+
     /* ── Children（乾淨連接線：用 background 畫主幹） ── */
     .children {
       position: relative;
@@ -196,6 +231,9 @@
       background-repeat: no-repeat;
       background-position: 0 0;
       background-size: 1.5px var(--trunk, 100%);
+    }
+    .children.collapsed {
+      display: none;
     }
 
     .child-row {
@@ -532,18 +570,26 @@ function renderPerson(p) {
   return renderName(p, true);
 }
 
-function renderNode(p) {
+function renderNode(p, depth = 0) {
   const kids = p.children || [];
-  let html = `<div class="person">${renderPerson(p)}</div>`;
+  const hasKids = kids.length > 0;
+  const nodeId = `node-${Math.random().toString(36).slice(2,8)}`;
+
+  let toggleBtn = '';
+  if (hasKids) {
+    toggleBtn = `<button class="toggle-btn" aria-expanded="true" aria-controls="${nodeId}" title="收合">—</button>`;
+  }
+
+  let html = `<div class="person">${toggleBtn}${renderPerson(p)}</div>`;
 
   if (p.note) {
     html += `<div class="note">${esc(p.note)}</div>`;
   }
 
-  if (kids.length) {
-    html += `<div class="children">`;
+  if (hasKids) {
+    html += `<div class="children" id="${nodeId}">`;
     kids.forEach(k => {
-      html += `<div class="child-row">${renderNode(k)}</div>`;
+      html += `<div class="child-row">${renderNode(k, depth + 1)}</div>`;
     });
     html += `</div>`;
   }
@@ -579,20 +625,46 @@ if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(adjustTrunks);
 }
 
-/* ══════ 互動：事件委派 ══════ */
+/* ══════ 樹狀收合展開邏輯 ══════ */
+function setToggle(btn, expanded) {
+  const targetId = btn.getAttribute('aria-controls');
+  const children = document.getElementById(targetId);
+  if (!children) return;
+  if (expanded) {
+    children.classList.remove('collapsed');
+    btn.setAttribute('aria-expanded', 'true');
+    btn.textContent = '—';
+    btn.title = '收合';
+  } else {
+    children.classList.add('collapsed');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.textContent = '＋';
+    btn.title = '展開';
+  }
+  scheduleAdjust();
+}
+
 tree.addEventListener('click', (e) => {
-  const btn = e.target.closest('button.name');
-  if (!btn) return;
-  // 關掉其他展開中的
-  document.querySelectorAll('button.name.active').forEach(el => {
-    if (el !== btn) {
-      el.classList.remove('active');
-      el.setAttribute('aria-expanded', 'false');
-    }
-  });
-  // 切換自己
-  const isOpen = btn.classList.toggle('active');
-  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  // 名字展開生卒年
+  const nameBtn = e.target.closest('button.name');
+  if (nameBtn) {
+    document.querySelectorAll('button.name.active').forEach(el => {
+      if (el !== nameBtn) {
+        el.classList.remove('active');
+        el.setAttribute('aria-expanded', 'false');
+      }
+    });
+    const isOpen = nameBtn.classList.toggle('active');
+    nameBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    return;
+  }
+
+  // 樹狀收合/展開
+  const toggleBtn = e.target.closest('button.toggle-btn');
+  if (toggleBtn) {
+    const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+    setToggle(toggleBtn, !expanded);
+  }
 });
 
 document.addEventListener('keydown', (e) => {
