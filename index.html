@@ -177,7 +177,8 @@
       align-items: flex-start;
     }
     .name.active + .year,
-    .person-wrap:has(.name.active) > .year {
+    .person-wrap:has(.name.active) > .year,
+    .year.year-open {
       display: inline-block;
       animation: slideIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
     }
@@ -186,6 +187,8 @@
       from { opacity: 0; transform: translateY(-4px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+
 
     /* ── Children（乾淨連接線：用 background 畫主幹） ── */
     .children {
@@ -197,6 +200,44 @@
       background-position: 0 0;
       background-size: 1.5px var(--trunk, 100%);
     }
+    .children.collapsed {
+      height: 0;
+      overflow: hidden;
+    }
+
+    /* ── 收合提示：有子節點的名字 cursor 變成 pointer ── */
+    .collapse-btn {
+      cursor: pointer;
+    }
+    .name-static.collapse-btn {
+      border-bottom: 1px dashed var(--gold);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    .name-static.collapse-btn:hover { color: var(--red); background: #b8860b18; }
+
+    /* ── rank-btn（長男／次男可點，展開生卒年） ── */
+    .name-rank-row {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0;
+    }
+    .rank-btn {
+      cursor: pointer;
+      background: none;
+      border: none;
+      border-bottom: 1px dashed var(--gold);
+      padding: 0 1px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      font-family: inherit;
+      font-size: inherit;
+      color: var(--gold);
+      transition: color 0.2s, background 0.2s;
+    }
+    .rank-btn:hover { color: var(--red); background: #b8860b18; }
+    .rank-btn.active { color: var(--red); border-bottom-style: solid; }
 
     .child-row {
       position: relative;
@@ -313,9 +354,10 @@
         </g>
 
         <!-- 「郭」字（真正的字體渲染） -->
-        <text x="50" y="52"
+        <text x="50" y="50%"
               text-anchor="middle"
-              dominant-baseline="central"
+              dominant-baseline="middle"
+              dy="0.12em"
               font-family="'Noto Serif TC', 'STKaiti', 'KaiTi', 'BiauKai', serif"
               font-size="60"
               font-weight="900"
@@ -345,8 +387,6 @@ const familyData = {
     death: "明治45年2月10日（1912）"
   },
   children: [
-    { name: "郭江溪", rank: "次男", spouse: { name: "郭張旦" } },
-    { name: "郭阿傳", rank: "三男" },
     {
       name: "郭江漢",
       rank: "長男",
@@ -358,8 +398,12 @@ const familyData = {
         death: "民國50年10月5日（1961）"
       },
       children: [
+        { name: "郭慎", rank: "長女" },
+        { name: "郭錦", rank: "次女" },
+        { name: "郭寶珠", rank: "三女" },
         {
           name: "郭燦生",
+          rank: "次男",
           birth: "大正13年8月13日（1924）",
           death: "民國61年8月14日（1972）",
           spouse: {
@@ -367,7 +411,7 @@ const familyData = {
             birth: "昭和5年1月30日（1930）",
             death: "民國114年11月18日（2025）"
           },
-          note: "生父生母：郭江溪　郭張旦",
+          note: "生父生母：郭江溪　郭張阿旦",
           children: [
             {
               name: "郭慶鐘", rank: "長男",
@@ -492,6 +536,15 @@ const familyData = {
           ]
         }
       ]
+    },
+    { name: "郭阿片", rank: "次男" },
+    { name: "郭阿傳", rank: "三男" },
+    { name: "郭江溪", rank: "四男", spouse: { name: "郭張阿旦" },
+      children: [
+        { name: "郭有涂", rank: "長男" },
+        { name: "郭燦坤", rank: "三男" },
+        { name: "郭素娥", rank: "長女" }
+      ]
     }
   ]
 };
@@ -511,39 +564,69 @@ function lifeText(p) {
   return parts.join('～');
 }
 
-function renderName(p, includeRank = true) {
+// 這兩位同時有子節點又有生卒年，rank 獨立成可點按鈕
+const SPLIT_RANK_NAMES = ['郭江漢', '郭燦生'];
+
+function renderName(p, includeRank = true, hasKids = false) {
   const life = lifeText(p);
+  const splitRank = includeRank && p.rank && life && SPLIT_RANK_NAMES.includes(p.name);
+
+  if (splitRank) {
+    // 名字：有虛線，點收合子層（class="name collapse-btn"）
+    // 稱謂：獨立虛線，點展開生卒年（class="rank-btn"）
+    // 生卒年：從名字左邊對齊
+    return `<span class="person-wrap">`
+      + `<span class="name-rank-row">`
+      + `<button class="name collapse-btn" type="button">${esc(p.name)}</button>`
+      + `<button class="rank-btn" type="button" aria-expanded="false">（${esc(p.rank)}）</button>`
+      + `</span>`
+      + `<span class="year">${esc(life)}</span>`
+      + `</span>`;
+  }
+
   const rankSuffix = (includeRank && p.rank) ? `（${p.rank}）` : '';
-  const label = esc(p.name) + rankSuffix;
 
   if (life) {
+    // 有生卒年：點名字展開生卒年（配偶或一般長輩）
+    const label = esc(p.name) + rankSuffix;
     return `<span class="person-wrap">`
       + `<button class="name" type="button" aria-expanded="false">${label}</button>`
       + `<span class="year">${esc(life)}</span>`
       + `</span>`;
   }
+
+  if (hasKids) {
+    // 有子節點無生卒年：點名字收合
+    const label = esc(p.name) + rankSuffix;
+    return `<span class="name-static collapse-btn" role="button" tabindex="0">${label}</span>`;
+  }
+
+  const label = esc(p.name) + rankSuffix;
   return `<span class="name-static">${label}</span>`;
 }
 
-function renderPerson(p) {
+function renderPerson(p, hasKids = false) {
   if (p.spouse) {
-    return `<div class="couple">${renderName(p, true)}<span class="times">×</span>${renderName(p.spouse, false)}</div>`;
+    return `<div class="couple">${renderName(p, true, hasKids)}<span class="times">×</span>${renderName(p.spouse, false, false)}</div>`;
   }
-  return renderName(p, true);
+  return renderName(p, true, hasKids);
 }
 
-function renderNode(p) {
+function renderNode(p, depth = 0) {
   const kids = p.children || [];
-  let html = `<div class="person">${renderPerson(p)}</div>`;
+  const hasKids = kids.length > 0;
+  const nodeId = `node-${Math.random().toString(36).slice(2,8)}`;
+
+  let html = `<div class="person" ${hasKids ? `data-controls="${nodeId}"` : ''}>${renderPerson(p, hasKids)}</div>`;
 
   if (p.note) {
     html += `<div class="note">${esc(p.note)}</div>`;
   }
 
-  if (kids.length) {
-    html += `<div class="children">`;
+  if (hasKids) {
+    html += `<div class="children" id="${nodeId}">`;
     kids.forEach(k => {
-      html += `<div class="child-row">${renderNode(k)}</div>`;
+      html += `<div class="child-row">${renderNode(k, depth + 1)}</div>`;
     });
     html += `</div>`;
   }
@@ -556,10 +639,15 @@ tree.innerHTML = renderNode(familyData);
 /* ══════ 精確計算主幹高度（不用白色遮罩 hack） ══════ */
 function adjustTrunks() {
   document.querySelectorAll('.children').forEach(c => {
-    const lastChild = c.lastElementChild;
-    if (!lastChild) return;
+    if (c.classList.contains('collapsed')) {
+      c.style.setProperty('--trunk', '0px');
+      return;
+    }
+    const rows = Array.from(c.querySelectorAll(':scope > .child-row'));
+    if (!rows.length) return;
+    const lastRow = rows[rows.length - 1];
     const cRect = c.getBoundingClientRect();
-    const lastRect = lastChild.getBoundingClientRect();
+    const lastRect = lastRow.getBoundingClientRect();
     const fontSize = parseFloat(getComputedStyle(c).fontSize);
     const topOffset = fontSize * 0.9 + 5;
     const lastChildTop = lastRect.top - cRect.top;
@@ -567,49 +655,78 @@ function adjustTrunks() {
   });
 }
 function scheduleAdjust() {
-  // 雙 rAF：第一次讓瀏覽器完成 reflow（含 clamp() 字體變化），第二次才量測
   requestAnimationFrame(() => requestAnimationFrame(adjustTrunks));
 }
 
 scheduleAdjust();
 window.addEventListener('resize', scheduleAdjust);
 window.addEventListener('beforeprint', adjustTrunks);
-// 字體載入後重算
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(adjustTrunks);
 }
 
-/* ══════ 互動：事件委派 ══════ */
+/* ══════ 收合展開邏輯 ══════ */
 tree.addEventListener('click', (e) => {
-  const btn = e.target.closest('button.name');
-  if (!btn) return;
-  // 關掉其他展開中的
-  document.querySelectorAll('button.name.active').forEach(el => {
-    if (el !== btn) {
-      el.classList.remove('active');
-      el.setAttribute('aria-expanded', 'false');
+
+  // 1. rank-btn：展開生卒年（郭江漢、郭燦生專用）
+  const rankBtn = e.target.closest('button.rank-btn');
+  if (rankBtn) {
+    const wrap = rankBtn.closest('.person-wrap');
+    const year = wrap && wrap.querySelector('.year');
+    if (year) {
+      const isOpen = rankBtn.getAttribute('aria-expanded') === 'true';
+      rankBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      rankBtn.classList.toggle('active', !isOpen);
+      year.classList.toggle('year-open', !isOpen);
     }
-  });
-  // 切換自己
-  const isOpen = btn.classList.toggle('active');
-  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    return;
+  }
+
+  // 2. collapse-btn（名字）：收合/展開子層
+  const collapseBtn = e.target.closest('.collapse-btn');
+  if (collapseBtn) {
+    const personEl = collapseBtn.closest('.person');
+    if (!personEl) return;
+    const nodeId = personEl.getAttribute('data-controls');
+    if (!nodeId) return;
+    const childrenEl = document.getElementById(nodeId);
+    if (!childrenEl) return;
+    const isCollapsed = childrenEl.classList.toggle('collapsed');
+    collapseBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    scheduleAdjust();
+    return;
+  }
+
+  // 3. 一般 name 按鈕：展開生卒年
+  const nameBtn = e.target.closest('button.name');
+  if (nameBtn) {
+    const isOpen = nameBtn.classList.toggle('active');
+    nameBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    return;
+  }
 });
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('button.name.active').forEach(el => {
+    document.querySelectorAll('button.name.active, button.rank-btn.active').forEach(el => {
       el.classList.remove('active');
       el.setAttribute('aria-expanded', 'false');
     });
+    document.querySelectorAll('.year.year-open').forEach(el => el.classList.remove('year-open'));
   }
 });
 
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('.name')) {
+  if (!e.target.closest('.person-wrap')) {
     document.querySelectorAll('button.name.active').forEach(el => {
       el.classList.remove('active');
       el.setAttribute('aria-expanded', 'false');
     });
+    document.querySelectorAll('button.rank-btn.active').forEach(el => {
+      el.classList.remove('active');
+      el.setAttribute('aria-expanded', 'false');
+    });
+    document.querySelectorAll('.year.year-open').forEach(el => el.classList.remove('year-open'));
   }
 });
 </script>
