@@ -102,7 +102,7 @@
 
     /* ── Tree root ── */
     .tree {
-      font-size: clamp(16px, 2.8vw, 22px);
+      font-size: clamp(18px, 3.5vw, 22px);
       line-height: 1;
       color: var(--ink);
     }
@@ -161,7 +161,7 @@
     .year {
       display: none;
       font-family: "Noto Serif TC", serif;
-      font-size: 0.68em;
+      font-size: 0.75em;
       color: var(--ink-light);
       letter-spacing: 0.06em;
       font-weight: 400;
@@ -255,7 +255,7 @@
     /* ── Note（生父生母註記） ── */
     .note {
       font-family: "Noto Serif TC", serif;
-      font-size: 0.78em;
+      font-size: 0.75em;
       color: var(--ink-light);
       letter-spacing: 0.08em;
       font-weight: 400;
@@ -709,20 +709,6 @@ tree.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     document.querySelectorAll('button.name.active, button.rank-btn.active').forEach(el => {
-      el.classList.remove('active');
-      el.setAttribute('aria-expanded', 'false');
-    });
-    document.querySelectorAll('.year.year-open').forEach(el => el.classList.remove('year-open'));
-  }
-});
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.person-wrap')) {
-    document.querySelectorAll('button.name.active').forEach(el => {
-      el.classList.remove('active');
-      el.setAttribute('aria-expanded', 'false');
-    });
-    document.querySelectorAll('button.rank-btn.active').forEach(el => {
       el.classList.remove('active');
       el.setAttribute('aria-expanded', 'false');
     });
